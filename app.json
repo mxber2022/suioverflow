@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "name": "Bank of SUI",
+    "slug": "bank-of-sui",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "myapp",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.mx.bank"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "experiments": {
+      "typedRoutes": true
+    },
+    "android": {
+      "package": "com.mx.bank"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "0ce6f1cb-80ce-4970-b5c9-513b18b36379"
+      }
+    }
+  }
+}
