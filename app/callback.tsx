@@ -87,7 +87,8 @@ export default function ZkLoginCallback() {
         // Get zkLogin address using stored salt
         
         const zkLoginAddress = jwtToAddress(jwt, salt);
-        console.log("hehe jwt: ", jwt);
+        console.log("zkLoginAddress: ", zkLoginAddress);
+        console.log("jwt : ", jwt );
         setStatus('Generating zero-knowledge proof...');
         
         // Get ZK proof
