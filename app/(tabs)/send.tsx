@@ -9,7 +9,7 @@ import { Contact } from '@/types/Contact';
 import { CONTACTS } from '@/data/contacts';
 import { getFullnodeUrl, SuiClient } from '@mysten/sui/client';
 import { Transaction } from '@mysten/sui/transactions';
-import { MIST_PER_SUI } from '@mysten/sui/utils';
+import { fromB64, MIST_PER_SUI } from '@mysten/sui/utils';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
 import { genAddressSeed, getZkLoginSignature } from '@mysten/sui/zklogin';
@@ -67,7 +67,7 @@ export default function TransferScreen() {
 
       const client = new SuiClient({ url: getFullnodeUrl("testnet") });
       const tx = new Transaction();
-
+      console.log("storedAddress: ", storedAddress);
       const coins = await client.getCoins({
         owner: storedAddress!,
         coinType: "0xa1ec7fc00a6f40db9693ad1415d0c193ad3906494428cf252621037bd7117e29::usdc::USDC"
@@ -75,7 +75,7 @@ export default function TransferScreen() {
       const usdcCoinObjectId = coins.data[0].coinObjectId; // Use the first one, or pick as needed
       const [coin] = tx.splitCoins(usdcCoinObjectId, [BigInt(amount)]);
       tx.transferObjects([coin], address);
-
+      tx.setSender(storedAddress!);
       const transactionKindBytes = await tx.build({
         client: client,
         onlyTransactionKind: true,
@@ -87,7 +87,7 @@ export default function TransferScreen() {
       console.log("base64TransactionBlockKindBytes: ", base64TransactionBlockKindBytes);
 
       const storedJwt = await AsyncStorage.getItem('zkLoginJwt');
-
+      console.log("jwt: ", storedJwt);
       const transferResult = await fetch("https://api.enoki.mystenlabs.com/v1/transaction-blocks/sponsor", {
         method: "POST",
         headers: {
@@ -98,12 +98,13 @@ export default function TransferScreen() {
         body: JSON.stringify({
           "network": "testnet",
           "transactionBlockKindBytes": base64TransactionBlockKindBytes,
-          "sender": "0x6c512762a36425c7978f19ae32586a6e539b9afa722b3e723b37dc72bf25df7c",
+          "sender": storedAddress,
           "allowedAddresses": [
-            "0x6c512762a36425c7978f19ae32586a6e539b9afa722b3e723b37dc72bf25df7c"
+            "0xff621c6cfb6db62098c4bb25e4c5262950a27068e8705d04519615b62e5e7819"
           ],
           "allowedMoveCallTargets": [
             "0xa1ec7fc00a6f40db9693ad1415d0c193ad3906494428cf252621037bd7117e29::usdc::USDC::transfer"
+             
           ]
         })
       });
@@ -116,44 +117,49 @@ export default function TransferScreen() {
         console.log("✅ Sponsor response:", responseJson);
       }
 
-      //sign the transaction
-      tx.setSender("0x6c512762a36425c7978f19ae32586a6e539b9afa722b3e723b37dc72bf25df7c");
-      const zklogin_ephemeral_keypair = await AsyncStorage.getItem('zklogin_ephemeral_keypair');
-      const storedKeypair = JSON.parse(zklogin_ephemeral_keypair!);
+//       //sign the transaction
+//       const zklogin_ephemeral_keypair = await AsyncStorage.getItem('zklogin_ephemeral_keypair');
+//       const storedKeypair = JSON.parse(zklogin_ephemeral_keypair!);
 
-// Convert the private key array to Uint8Array
-    const privateKeyUint8 = new Uint8Array(storedKeypair.privateKey);
+// // Convert the private key array to Uint8Array
+//     const privateKeyUint8 = new Uint8Array(storedKeypair.privateKey);
 
-// Reconstruct the Ed25519Keypair instance
-    const ephemeralKeyPair = Ed25519Keypair.fromSecretKey(privateKeyUint8);
+// // Reconstruct the Ed25519Keypair instance
+//     const ephemeralKeyPair = Ed25519Keypair.fromSecretKey(privateKeyUint8);
 
-    const { bytes, signature: userSignature } = await tx.sign({
-      client,
-      signer: ephemeralKeyPair,
-    });
-    const digest = responseJson.data.digest;
-    const submitTransaction = await fetch(`https://api.enoki.mystenlabs.com/v1/transaction-blocks/sponsor/${digest}`, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${process.env.EXPO_PUBLIC_ENOKI_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        transactionBlock: bytes,    // Include the transaction bytes!
-        signature: userSignature    // And the signature
-      })
-    });
+//     console.log("ephemeralKeyPair: ", ephemeralKeyPair);
+
+//     const { bytes, signature: userSignature } = await tx.sign({
+//       client,
+//       signer: ephemeralKeyPair,
+//     });
+//     const digest = responseJson.data.digest;
+//     console.log()
+//     console.log("digest", digest)
+//     console.log("userSignature:" , userSignature);
+//     console.log()
+//     const submitTransaction = await fetch(`https://api.enoki.mystenlabs.com/v1/transaction-blocks/sponsor/${digest}`, {
+//       method: "POST",
+//       headers: {
+//         "Authorization": `Bearer ${process.env.EXPO_PUBLIC_ENOKI_API_KEY}`,
+//         "Content-Type": "application/json"
+//       },
+//       body: JSON.stringify({
+//         transactionBlock: bytes,    // Include the transaction bytes!
+//         signature: userSignature    // And the signature
+//       })
+//     });
     
 
-      console.log("submitTransaction", submitTransaction);
+//       // console.log("submitTransaction", submitTransaction);
 
-      const submitTransactionresponseJson = await submitTransaction.json();
+//       const submitTransactionresponseJson = await submitTransaction.json();
 
-      if (!transferResult.ok) {
-        console.error("❌ Sponsor API error response:", submitTransactionresponseJson);
-      } else {
-        console.log("✅ Sponsor response:", submitTransactionresponseJson);
-      }
+//       if (!transferResult.ok) {
+//         console.error("❌ Sponsor API error response submitTransactionresponseJson:", submitTransactionresponseJson);
+//       } else {
+//         console.log("✅ Sponsor response:", submitTransactionresponseJson);
+//       }
 
       alert(`Transferring ${amount} USDC`);
     }
