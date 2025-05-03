@@ -38,6 +38,18 @@ export function ZkLoginButton() {
       setLoading(true);
       setError(null);
 
+      /* Avoid login if jwt and adress present*/
+      const storedJwt = await AsyncStorage.getItem('zkLoginJwt');
+    const storedAddress = await AsyncStorage.getItem('zkLoginAddress');
+
+    if (storedJwt && storedAddress) {
+      console.log('JWT and address already stored, skipping login.');
+      router.push(`/callback`); // Assuming this redirects to your callback screen
+      return;
+    }
+
+    /* */
+
       const CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID;
       console.log("CLIENT_ID: ", CLIENT_ID);
       if (!CLIENT_ID) throw new Error('Google Client ID is not configured');
