@@ -137,3 +137,4 @@ expo-env.d.ts
 .expo/devices.json
 .expo/types/router.d.ts
 .expo/README.md
+.DS_Store
