@@ -133,6 +133,45 @@ export default function TransferScreen() {
         console.log("✅ Sponsor response:", responseJson);
       }
 
+      //sign the transaction
+      tx.setSender("0x6c512762a36425c7978f19ae32586a6e539b9afa722b3e723b37dc72bf25df7c");
+      const zklogin_ephemeral_keypair = await AsyncStorage.getItem('zklogin_ephemeral_keypair');
+      const storedKeypair = JSON.parse(zklogin_ephemeral_keypair!);
+
+// Convert the private key array to Uint8Array
+    const privateKeyUint8 = new Uint8Array(storedKeypair.privateKey);
+
+// Reconstruct the Ed25519Keypair instance
+    const ephemeralKeyPair = Ed25519Keypair.fromSecretKey(privateKeyUint8);
+
+    const { bytes, signature: userSignature } = await tx.sign({
+      client,
+      signer: ephemeralKeyPair,
+    });
+    const digest = responseJson.data.digest;
+    const submitTransaction = await fetch(`https://api.enoki.mystenlabs.com/v1/transaction-blocks/sponsor/${digest}`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${process.env.EXPO_PUBLIC_ENOKI_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        transactionBlock: bytes,    // Include the transaction bytes!
+        signature: userSignature    // And the signature
+      })
+    });
+    
+
+      console.log("submitTransaction", submitTransaction);
+
+      const submitTransactionresponseJson = await submitTransaction.json();
+
+      if (!transferResult.ok) {
+        console.error("❌ Sponsor API error response:", submitTransactionresponseJson);
+      } else {
+        console.log("✅ Sponsor response:", submitTransactionresponseJson);
+      }
+
       alert(`Transferring ${amount} USDC`);
     }
     catch(e){
