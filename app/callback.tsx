@@ -75,6 +75,7 @@ export default function ZkLoginCallback() {
         
         // Create keypair from stored private key
         const privateKeyBytes = new Uint8Array(keyPairData.privateKey);
+        console.log("privateKeyBytes: ", privateKeyBytes);
         const ephemeralKeyPair = Ed25519Keypair.fromSecretKey(privateKeyBytes);
 
         // Get extended ephemeral public key
@@ -90,63 +91,66 @@ export default function ZkLoginCallback() {
         console.log("zkLoginAddress: ", zkLoginAddress);
         console.log("jwt : ", jwt );
         setStatus('Generating zero-knowledge proof...');
+        console.log("private key: ", ephemeralKeyPair);
         
         // Get ZK proof
-        // const proofResponse = await fetch('https://prover-dev.mystenlabs.com/v1', {
-        //   method: 'POST',
-        //   headers: {
-        //     'Content-Type': 'application/json',
-        //   },
-        //   body: JSON.stringify({
-        //     jwt,
-        //     extendedEphemeralPublicKey: extendedEphemeralPublicKey.toString(),
-        //     maxEpoch: parseInt(maxEpoch),
-        //     jwtRandomness: randomness,
-        //     salt,
-        //     keyClaimName: 'sub',
-        //   }),
-        // });
+        const proofResponse = await fetch('https://prover-dev.mystenlabs.com/v1', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            jwt,
+            extendedEphemeralPublicKey: extendedEphemeralPublicKey.toString(),
+            maxEpoch: parseInt(maxEpoch),
+            jwtRandomness: randomness,
+            salt,
+            keyClaimName: 'sub',
+          }),
+        });
 
 
-        // if (!proofResponse.ok) {
-        //   const errorData = await proofResponse.json();
-        //   console.error("Proof generation failed:", errorData);
+
+
+        if (!proofResponse.ok) {
+          const errorData = await proofResponse.json();
+          console.error("Proof generation failed:", errorData);
         
-        //   throw new Error(
-        //     `Failed to generate proof: ${JSON.stringify(errorData)}`
-        //   );
-        // }
+          throw new Error(
+            `Failed to generate proof: ${JSON.stringify(errorData)}`
+          );
+        }
 
-        // const proofData = await proofResponse.json();
+        const proofData = await proofResponse.json();
 
 
         //ENKOKI IMPLEMENTATION
 
          // Call Enoki API
-         const enokiResponse = await fetch("https://api.enoki.mystenlabs.com/v1/zklogin", {
-          headers: {
-            'zklogin-jwt': jwt,
-            'Authorization': `Bearer ${process.env.EXPO_PUBLIC_ENOKI_API_KEY}`
-          }
-        });
+        //  const enokiResponse = await fetch("https://api.enoki.mystenlabs.com/v1/zklogin", {
+        //   headers: {
+        //     'zklogin-jwt': jwt,
+        //     'Authorization': `Bearer ${process.env.EXPO_PUBLIC_ENOKI_API_KEY}`
+        //   }
+        // });
 
-        console.log("enokiResponse: ", enokiResponse);
-        if (!enokiResponse.ok) {
-          const errorData = await enokiResponse.json();
-          throw new Error(`Enoki API error: ${errorData.error || enokiResponse.statusText}`);
-        }
+        // console.log("enokiResponse: ", enokiResponse);
+        // if (!enokiResponse.ok) {
+        //   const errorData = await enokiResponse.json();
+        //   throw new Error(`Enoki API error: ${errorData.error || enokiResponse.statusText}`);
+        // }
 
-        const enokiData = await enokiResponse.json();
+        // const enokiData = await enokiResponse.json();
 
-        console.log("enokiData: ", enokiData);
+        // console.log("enokiData: ", enokiData);
 
         //END 
 
         // Store the login data
          await storeData('zkLoginJwt', jwt);
-        // await storeData('zkLoginProof', JSON.stringify(proofData));
-       // await storeData('zkLoginAddress', zkLoginAddress);
-        await storeData('zkLoginAddress', enokiData.data.address);
+         await storeData('zkLoginProof', JSON.stringify(proofData));
+        await storeData('zkLoginAddress', zkLoginAddress);
+        //await storeData('zkLoginAddress', enokiData.data.address);
         setStatus('Login successful! Redirecting...');
         setTimeout(() => router.replace('/(tabs)'), 1500);
       } catch (error) {
