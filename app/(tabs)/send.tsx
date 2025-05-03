@@ -88,23 +88,6 @@ export default function TransferScreen() {
 
       const storedJwt = await AsyncStorage.getItem('zkLoginJwt');
 
-      // const transferResult = await fetch("https://api.enoki.mystenlabs.com/v1/transaction-blocks/sponsor", {
-      //   method: "POST", 
-      //   //@ts-ignore
-      //   headers: {
-      //     "zklogin-jwt": storedJwt,
-      //     "Authorization": `Bearer ${process.env.EXPO_PUBLIC_ENOKI_API_KEY}`
-      //   },
-      //   body: JSON.stringify({
-      //     "network": "testnet",
-      //     "transactionBlockKindBytes": base64TransactionBlockKindBytes,
-      //     "sender": "0x6c512762a36425c7978f19ae32586a6e539b9afa722b3e723b37dc72bf25df7c",
-      //     "allowedAddresses": [address],
-      //     "allowedMoveCallTargets": ["0xa1ec7fc00a6f40db9693ad1415d0c193ad3906494428cf252621037bd7117e29::usdc::USDC::transfer"]
-      //   })
-      // });
-
-
       const transferResult = await fetch("https://api.enoki.mystenlabs.com/v1/transaction-blocks/sponsor", {
         method: "POST",
         headers: {
