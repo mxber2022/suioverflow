@@ -1,2 +1,0 @@
-# suioverflow
- BANK OF SUI
