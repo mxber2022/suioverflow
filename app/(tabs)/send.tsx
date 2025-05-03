@@ -13,6 +13,8 @@ import { MIST_PER_SUI } from '@mysten/sui/utils';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
 import { genAddressSeed, getZkLoginSignature } from '@mysten/sui/zklogin';
+import { Buffer } from 'buffer';
+global.Buffer = Buffer;
 
 const getData = async (key: string): Promise<string | null> => {
   try {
@@ -58,57 +60,79 @@ export default function TransferScreen() {
   
   const handleTransfer = async () => {
     if (!amount || !address) return;
-    try{
-      console.log(await getData('zkLoginAddress'));
-      const raw = await getData('zklogin_ephemeral_keypair');
-      const parsed = JSON.parse(raw); // contains { publicKey: [...], privateKey: [...] }
-      const secretKey = new Uint8Array([...parsed.privateKey, ...parsed.publicKey]);
-      const mykeypair = new Ed25519Keypair({ publicKey: Uint8Array.from(parsed.publicKey), secretKey });
-      console.log("✅ mykeypair: ", mykeypair.getPublicKey().toBase64());
+
+    const storedAddress = await AsyncStorage.getItem('zkLoginAddress');
+    try
+    {
 
       const client = new SuiClient({ url: getFullnodeUrl("testnet") });
       const tx = new Transaction();
-      //@ts-ignore
-      tx.setSender(await getData('zkLoginAddress'));
-      const [coin] = tx.splitCoins(tx.gas, [
-        BigInt(Number(amount) * Number(MIST_PER_SUI)),
-      ]);
-      console.log("addres: ", address);
+
+      const coins = await client.getCoins({
+        owner: storedAddress!,
+        coinType: "0xa1ec7fc00a6f40db9693ad1415d0c193ad3906494428cf252621037bd7117e29::usdc::USDC"
+      });
+      const usdcCoinObjectId = coins.data[0].coinObjectId; // Use the first one, or pick as needed
+      const [coin] = tx.splitCoins(usdcCoinObjectId, [BigInt(amount)]);
       tx.transferObjects([coin], address);
-      const {bytes, signature:userSignature} = await tx.sign({
-        client,
-        signer: mykeypair,
+
+      const transactionKindBytes = await tx.build({
+        client: client,
+        onlyTransactionKind: true,
       });
 
-      // const decodedJwt = await getData('zkLoginJwt')
-      // const maxEpoch = await getData('zklogin_max_epoch')
-      // const addressSeed = genAddressSeed(
-      //   BigInt(await getData('zklogin_user_salt')),
-      //   'sub',
-      //   decodedJwt.sub,
-      //   decodedJwt.aud,
-      // ).toString();
-      
-      // const zkLoginSignature = getZkLoginSignature({
-      //   inputs: {
-      //     ...partialZkLoginSignature,
-      //     addressSeed,
+      console.log("transactionKindBytes: ", transactionKindBytes);
+
+      const base64TransactionBlockKindBytes = Buffer.from(transactionKindBytes).toString('base64');
+      console.log("base64TransactionBlockKindBytes: ", base64TransactionBlockKindBytes);
+
+      const storedJwt = await AsyncStorage.getItem('zkLoginJwt');
+
+      // const transferResult = await fetch("https://api.enoki.mystenlabs.com/v1/transaction-blocks/sponsor", {
+      //   method: "POST", 
+      //   //@ts-ignore
+      //   headers: {
+      //     "zklogin-jwt": storedJwt,
+      //     "Authorization": `Bearer ${process.env.EXPO_PUBLIC_ENOKI_API_KEY}`
       //   },
-      //   maxEpoch,
-      //   userSignature,
+      //   body: JSON.stringify({
+      //     "network": "testnet",
+      //     "transactionBlockKindBytes": base64TransactionBlockKindBytes,
+      //     "sender": "0x6c512762a36425c7978f19ae32586a6e539b9afa722b3e723b37dc72bf25df7c",
+      //     "allowedAddresses": [address],
+      //     "allowedMoveCallTargets": ["0xa1ec7fc00a6f40db9693ad1415d0c193ad3906494428cf252621037bd7117e29::usdc::USDC::transfer"]
+      //   })
       // });
 
-      // client.executeTransactionBlock({
-      //   transactionBlock: bytes,
-      //   signature: zkLoginSignature,
-      // });
 
-      const result = await client.signAndExecuteTransaction({
-        signer: mykeypair,
-        transaction: tx,
-    });
-  
-      console.log("result: ", result);
+      const transferResult = await fetch("https://api.enoki.mystenlabs.com/v1/transaction-blocks/sponsor", {
+        method: "POST",
+        headers: {
+         "zklogin-jwt": storedJwt,
+        "Authorization": `Bearer ${process.env.EXPO_PUBLIC_ENOKI_API_KEY}`,
+        "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          "network": "testnet",
+          "transactionBlockKindBytes": base64TransactionBlockKindBytes,
+          "sender": "0x6c512762a36425c7978f19ae32586a6e539b9afa722b3e723b37dc72bf25df7c",
+          "allowedAddresses": [
+            "0x6c512762a36425c7978f19ae32586a6e539b9afa722b3e723b37dc72bf25df7c"
+          ],
+          "allowedMoveCallTargets": [
+            "0xa1ec7fc00a6f40db9693ad1415d0c193ad3906494428cf252621037bd7117e29::usdc::USDC::transfer"
+          ]
+        })
+      });
+
+      const responseJson = await transferResult.json();
+
+      if (!transferResult.ok) {
+        console.error("❌ Sponsor API error response:", responseJson);
+      } else {
+        console.log("✅ Sponsor response:", responseJson);
+      }
+
       alert(`Transferring ${amount} USDC`);
     }
     catch(e){
@@ -116,6 +140,11 @@ export default function TransferScreen() {
       alert(`Error transferring USDC`);
     }
   };
+
+
+
+
+
 
   const handleBarCodeScanned = ({ data }: { type: string; data: string }) => {
     setShowScanner(false);
