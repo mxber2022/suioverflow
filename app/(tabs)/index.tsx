@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform, Animated } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -8,14 +8,17 @@ import Layouts from '@/constants/Layouts';
 import { ArrowDown, Eye, EyeOff, Send, ChevronRight, ArrowUp } from 'lucide-react-native';
 import { RECENT_TRANSACTIONS } from '@/data/transactions';
 import ReceiveModal from '@/components/ReceiveModal';
+import { getFullnodeUrl, SuiClient } from '@mysten/sui/client';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function HomeScreen() {
   const router = useRouter();
-  const [balance, setBalance] = useState(1250.75);
+  //const [balance, setBalance] = useState(1250.75);
   const [hideBalance, setHideBalance] = useState(false);
   const [showReceiveModal, setShowReceiveModal] = useState(false);
   const scrollY = useRef(new Animated.Value(0)).current;
-  const walletAddress = '0x742d35Cc6634C0532925a3b844Bc454e4438f44e';
+  const [walletAddress, setWalletAddress] = useState("");
+  const [balance, setBalance] = useState("");
 
   const headerOpacity = scrollY.interpolate({
     inputRange: [0, 100],
@@ -41,6 +44,37 @@ export default function HomeScreen() {
       <BlurView intensity={20} tint="light" style={StyleSheet.absoluteFill} />
     );
   };
+
+  async function getUsdcBalance() {
+    console.log("hey");
+    const suiClient = new SuiClient({ url: getFullnodeUrl('testnet') });
+    setWalletAddress(await AsyncStorage.getItem('zkLoginAddress'));
+    // const suiBalance = await suiClient.getBalance({
+    //   owner: await AsyncStorage.getItem('zkLoginAddress'),
+    //   coinType: "0xa1ec7fc00a6f40db9693ad1415d0c193ad3906494428cf252621037bd7117e29::usdc::USDC"
+    // });
+
+    // 1. Get the coin metadata to find decimals
+    const coinMetadata = await suiClient.getCoinMetadata({
+      coinType: "0xa1ec7fc00a6f40db9693ad1415d0c193ad3906494428cf252621037bd7117e29::usdc::USDC"
+    });
+    const decimals = coinMetadata.decimals;
+
+    const suiBalance = await suiClient.getBalance({
+      owner: await AsyncStorage.getItem('zkLoginAddress'),
+      coinType: "0xa1ec7fc00a6f40db9693ad1415d0c193ad3906494428cf252621037bd7117e29::usdc::USDC"
+    });
+    const humanBalance = Number(suiBalance.totalBalance) / (10 ** decimals);
+console.log(humanBalance);
+
+    setBalance(humanBalance);
+    console.log("usdc balance is: ", suiBalance);
+  }
+
+  useEffect (()=> {
+    getUsdcBalance()
+  },[]
+)
 
   return (
     <View style={styles.container}>
