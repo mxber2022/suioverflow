@@ -5,11 +5,12 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import Colors from '@/constants/Colors';
 import Layouts from '@/constants/Layouts';
-import { ArrowDown, Eye, EyeOff, Send, ChevronRight, ArrowUp, Plus } from 'lucide-react-native';
+import { ArrowDown, Eye, EyeOff, Send, ChevronRight, ArrowUp, Plus, BanknoteIcon, CreditCard } from 'lucide-react-native';
 import { RECENT_TRANSACTIONS } from '@/data/transactions';
 import ReceiveModal from '@/components/ReceiveModal';
 import { getFullnodeUrl, SuiClient } from '@mysten/sui/client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import BankCardModal from '@/components/BankCardModal';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -19,6 +20,7 @@ export default function HomeScreen() {
   const scrollY = useRef(new Animated.Value(0)).current;
   const [walletAddress, setWalletAddress] = useState("");
   const [balance, setBalance] = useState("");
+  const [showCardModal, setShowCardModal] = useState(false);
 
   const headerOpacity = scrollY.interpolate({
     inputRange: [0, 100],
@@ -94,7 +96,7 @@ export default function HomeScreen() {
         )}
         scrollEventThrottle={16}
       >
-        <View style={styles.header}>          
+       <View style={styles.header}>          
           <View style={styles.balanceCard}>
             {renderBalanceCard()}
             <View style={styles.balanceContent}>
@@ -114,6 +116,14 @@ export default function HomeScreen() {
                   )}
                 </TouchableOpacity>
               </View>
+              
+              <TouchableOpacity 
+                style={styles.cardButton}
+                onPress={() => setShowCardModal(true)}
+              >
+                <CreditCard size={20} color="white" />
+                <Text style={styles.cardButtonText}>View Card Details</Text>
+              </TouchableOpacity>
             </View>
           </View>
 
@@ -206,6 +216,11 @@ export default function HomeScreen() {
         visible={showReceiveModal}
         onClose={() => setShowReceiveModal(false)}
         walletAddress={walletAddress}
+      />
+
+    <BankCardModal
+        visible={showCardModal}
+        onClose={() => setShowCardModal(false)}
       />
     </View>
   );
@@ -387,5 +402,22 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-SemiBold',
     fontSize: 14,
     letterSpacing: -0.2,
+  },
+
+  cardButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Layouts.spacing.sm,
+    marginTop: Layouts.spacing.md,
+    padding: Layouts.spacing.sm,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: Layouts.borderRadius.full,
+    alignSelf: 'flex-start',
+  },
+  cardButtonText: {
+    fontFamily: 'Inter-Medium',
+    fontSize: 14,
+    color: 'white',
+    opacity: 0.9,
   },
 });
