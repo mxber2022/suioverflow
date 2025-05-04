@@ -5,7 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import Colors from '@/constants/Colors';
 import Layouts from '@/constants/Layouts';
-import { ArrowDown, Eye, EyeOff, Send, ChevronRight, ArrowUp } from 'lucide-react-native';
+import { ArrowDown, Eye, EyeOff, Send, ChevronRight, ArrowUp, Plus } from 'lucide-react-native';
 import { RECENT_TRANSACTIONS } from '@/data/transactions';
 import ReceiveModal from '@/components/ReceiveModal';
 import { getFullnodeUrl, SuiClient } from '@mysten/sui/client';
@@ -65,7 +65,7 @@ export default function HomeScreen() {
       coinType: "0xa1ec7fc00a6f40db9693ad1415d0c193ad3906494428cf252621037bd7117e29::usdc::USDC"
     });
     const humanBalance = Number(suiBalance.totalBalance) / (10 ** decimals);
-console.log(humanBalance);
+    console.log(humanBalance);
 
     setBalance(humanBalance);
     console.log("usdc balance is: ", suiBalance);
@@ -118,6 +118,18 @@ console.log(humanBalance);
           </View>
 
           <View style={styles.quickActions}>
+                  {/* Add Money */}
+          <TouchableOpacity 
+              style={styles.actionButton}
+              onPress={() => router.push('/(tabs)/send')}
+            >
+              <View style={styles.plusIcon}>
+                <Plus size={20} color={Colors.primary[700]} />
+              </View>
+              <Text style={styles.actionText}>Send</Text>
+            </TouchableOpacity>
+
+
             <TouchableOpacity 
               style={styles.actionButton}
               onPress={() => router.push('/(tabs)/send')}
@@ -137,7 +149,11 @@ console.log(humanBalance);
               </View>
               <Text style={styles.actionText}>Receive</Text>
             </TouchableOpacity>
+
+
           </View>
+
+          
         </View>
 
         <View style={styles.transactionsSection}>
@@ -272,6 +288,20 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 28,
     backgroundColor: 'white',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: Layouts.spacing.sm,
+    shadowColor: Colors.primary[900],
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  plusIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'white', // Corrected background color to match actionIcon
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: Layouts.spacing.sm,
