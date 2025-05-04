@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import Colors from '@/constants/Colors';
@@ -6,6 +6,7 @@ import Layouts from '@/constants/Layouts';
 import { ArrowLeft, Filter, ArrowUp, ArrowDown } from 'lucide-react-native';
 import { Transaction } from '@/types/Transaction';
 import { RECENT_TRANSACTIONS } from '@/data/transactions';
+import { fetchRecentTransactions } from '@/utils/fetchRecentTransactions';
 
 type FilterOption = 'all' | 'sent' | 'received';
 
@@ -13,6 +14,24 @@ export default function TransactionsScreen() {
   const router = useRouter();
   const [activeFilter, setActiveFilter] = useState<FilterOption>('all');
   const [transactions, setTransactions] = useState<Transaction[]>(RECENT_TRANSACTIONS);
+  const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
+
+  const address = '0xf4334696ef3a277b7cc18ac1018bd00f17701074bc5d4c347ffc7764961b0cf8'; // <-- Replace with real connected address
+
+  useEffect(() => {
+    const loadTransactions = async () => {
+      try {
+        const recent = await fetchRecentTransactions(address);
+        console.log("recent: ", recent);
+        setAllTransactions(recent);
+        setTransactions(recent);
+      } catch (err) {
+        console.error('Failed to fetch transactions:', err);
+      }
+    };
+
+    if (address) loadTransactions();
+  }, []);
   
   const filterTransactions = (filter: FilterOption) => {
     setActiveFilter(filter);
@@ -26,8 +45,14 @@ export default function TransactionsScreen() {
     }
   };
 
-  const formatDate = (timestamp: number) => {
+  const formatDate = (timestamp: number | undefined) => {
+    if (!timestamp) {
+      return 'Invalid date'; // Handle undefined or null timestamp
+    }
     const date = new Date(timestamp);
+    if (isNaN(date.getTime())) {
+      return 'Invalid date'; // Handle invalid date
+    }
     return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
@@ -36,6 +61,9 @@ export default function TransactionsScreen() {
   };
 
   const formatAmount = (amount: number) => {
+    if (amount === undefined || amount === null) {
+      return 'Invalid amount';
+    }
     return amount.toLocaleString('en-US', {
       style: 'currency',
       currency: 'USD',
@@ -93,9 +121,9 @@ export default function TransactionsScreen() {
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {transactions.length > 0 ? (
-          transactions.map((transaction) => (
+          transactions.map((transaction,  index) => (
             <TouchableOpacity 
-              key={transaction.id} 
+            key={transaction.id || index} 
               style={styles.transactionCard}
               onPress={() => {
                 // Handle transaction details view
