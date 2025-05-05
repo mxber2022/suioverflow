@@ -10,26 +10,26 @@ const INVESTMENT_OPPORTUNITIES = [
     id: '1',
     name: 'USDC Lending',
     description: 'Earn interest by lending your USDC',
-    apy: 4.5,
-    risk: 'Low',
+    apy: 4.39,
+    protocol: 'suilend',
     minAmount: 100,
   },
-  {
-    id: '2',
-    name: 'Liquidity Pool',
-    description: 'Provide liquidity and earn trading fees',
-    apy: 12.8,
-    risk: 'Medium',
-    minAmount: 500,
-  },
-  {
-    id: '3',
-    name: 'Staking',
-    description: 'Stake USDC and earn rewards',
-    apy: 8.2,
-    risk: 'Low',
-    minAmount: 250,
-  },
+  // {
+  //   id: '2',
+  //   name: 'Liquidity Pool',
+  //   description: 'Provide liquidity and earn trading fees',
+  //   apy: 12.8,
+  //   risk: 'Medium',
+  //   minAmount: 500,
+  // },
+  // {
+  //   id: '3',
+  //   name: 'Staking',
+  //   description: 'Stake USDC and earn rewards',
+  //   apy: 8.2,
+  //   risk: 'Low',
+  //   minAmount: 250,
+  // },
 ];
 
 const PORTFOLIO_STATS = {
@@ -82,13 +82,13 @@ export default function InvestScreen() {
                   <Text style={styles.opportunityName}>{opportunity.name}</Text>
                   <View style={[
                     styles.riskBadge,
-                    { backgroundColor: opportunity.risk === 'Low' ? Colors.success.light : Colors.warning.light }
+                    { backgroundColor: opportunity.protocol === 'suilend' ? Colors.success.light : Colors.warning.light }
                   ]}>
                     <Text style={[
                       styles.riskText,
-                      { color: opportunity.risk === 'Low' ? Colors.success.main : Colors.warning.main }
+                      { color: opportunity.protocol === 'scallop' ? Colors.success.main : Colors.warning.main }
                     ]}>
-                      {opportunity.risk} Risk
+                      {opportunity.protocol}
                     </Text>
                   </View>
                 </View>

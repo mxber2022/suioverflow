@@ -98,34 +98,29 @@ export default function HomeScreen() {
       >
        <View style={styles.header}>          
           <View style={styles.balanceCard}>
+            
             {renderBalanceCard()}
-            <View style={styles.balanceContent}>
+            <View style={styles.balanceLabelRow}>
               <Text style={styles.balanceLabel}>Available Balance</Text>
-              <View style={styles.balanceRow}>
-                <Text style={styles.balanceAmount}>
-                  {hideBalance ? '••••••' : `$${balance.toLocaleString()}`}
-                </Text>
-                <TouchableOpacity
-                  style={styles.hideButton}
-                  onPress={() => setHideBalance(!hideBalance)}
-                >
-                  {hideBalance ? (
-                    <EyeOff size={20} color="white" />
-                  ) : (
-                    <Eye size={20} color="white" />
-                  )}
-                </TouchableOpacity>
-              </View>
-              
-              <TouchableOpacity 
-                style={styles.cardButton}
-                onPress={() => setShowCardModal(true)}
-              >
+              <TouchableOpacity style={styles.cardIconButton} onPress={() => setShowCardModal(true)}>
                 <CreditCard size={20} color="white" />
-                <Text style={styles.cardButtonText}>View Card Details</Text>
               </TouchableOpacity>
             </View>
-          </View>
+
+            <View style={styles.balanceRow}>
+    <Text style={styles.balanceAmount}>
+      {hideBalance ? '••••••' : `$${balance.toLocaleString()}`}
+    </Text>
+    <TouchableOpacity style={styles.hideButton} onPress={() => setHideBalance(!hideBalance)}>
+      {hideBalance ? (
+        <EyeOff size={20} color="white" />
+      ) : (
+        <Eye size={20} color="white" />
+      )}
+    </TouchableOpacity>
+  </View>
+</View>
+     
 
           <View style={styles.quickActions}>
                   {/* Add Money */}
@@ -251,7 +246,10 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     overflow: 'hidden',
     position: 'relative',
+    padding: 16,
   },
+
+  
   balanceCardBg: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
@@ -419,5 +417,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: 'white',
     opacity: 0.9,
+  },
+  balanceLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: Layouts.spacing.md,
+  },
+  
+  cardIconButton: {
+    paddingLeft: Layouts.spacing.sm,
+    paddingVertical: Layouts.spacing.xs,
   },
 });
