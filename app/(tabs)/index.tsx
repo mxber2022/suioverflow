@@ -7,11 +7,13 @@ import Colors from '@/constants/Colors';
 import Layouts from '@/constants/Layouts';
 import { ArrowDown, Eye, EyeOff, Send, ChevronRight, ArrowUp, Plus, BanknoteIcon, CreditCard } from 'lucide-react-native';
 import { RECENT_TRANSACTIONS } from '@/data/transactions';
+import { fetchRecentTransactions } from '@/utils/fetchRecentTransactions';
 import ReceiveModal from '@/components/ReceiveModal';
 import { getFullnodeUrl, SuiClient } from '@mysten/sui/client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import BankCardModal from '@/components/BankCardModal';
 import BuyUsdcModal from '@/components/BuyUsdcModal';
+import { Transaction } from '@/types/Transaction';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -23,7 +25,9 @@ export default function HomeScreen() {
   const [balance, setBalance] = useState("");
   const [showCardModal, setShowCardModal] = useState(false);
   const [showBuyModal, setShowBuyModal] = useState(false);
-
+  const [transactions, setTransactions] = useState<Transaction[]>(RECENT_TRANSACTIONS);
+  const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
+  const address = '0xf4334696ef3a277b7cc18ac1018bd00f17701074bc5d4c347ffc7764961b0cf8'; // <-- Replace with real connected addressr
   const headerOpacity = scrollY.interpolate({
     inputRange: [0, 100],
     outputRange: [1, 0],
@@ -48,6 +52,21 @@ export default function HomeScreen() {
       <BlurView intensity={20} tint="light" style={StyleSheet.absoluteFill} />
     );
   };
+
+  useEffect(() => {
+    const loadTransactions = async () => {
+      try {
+        const recent = await fetchRecentTransactions(address);
+        console.log("recent hellossssss: ", recent);
+        setAllTransactions(recent);
+        setTransactions(recent);
+      } catch (err) {
+        console.error('Failed to fetch transactions:', err);
+      }
+    };
+
+    if (address) loadTransactions();
+  }, []);
 
   async function getUsdcBalance() {
     console.log("hey");
@@ -80,6 +99,10 @@ export default function HomeScreen() {
     getUsdcBalance()
   },[]
 )
+
+const shortenAddress = (address: string): string => {
+  return address ? `${address.slice(0, 6)}...${address.slice(-4)}` : '';
+};
 
   return (
     <View style={styles.container}>
@@ -186,7 +209,7 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
 
-          {RECENT_TRANSACTIONS.slice(0, 3).map((transaction) => (
+          {allTransactions?.slice(0, 3).map((transaction) => (
             <View key={transaction.id} style={styles.transactionItem}>
               <View style={[
                 styles.transactionIcon,
@@ -202,7 +225,7 @@ export default function HomeScreen() {
               <View style={styles.transactionInfo}>
                 <Text style={styles.transactionTitle}>
                   {transaction.type === 'send' ? 'Sent to ' : 'Received from '}
-                  <Text style={styles.transactionName}>{transaction.contactName || 'Unknown'}</Text>
+                  <Text style={styles.transactionName}>{shortenAddress(transaction.sender) || 'Unknown'}</Text>
                 </Text>
                 <Text style={styles.transactionDate}>{formatDate(transaction.timestamp)}</Text>
               </View>
@@ -212,7 +235,7 @@ export default function HomeScreen() {
                   styles.amountText,
                   { color: transaction.type === 'send' ? Colors.error.main : Colors.success.main }
                 ]}>
-                  {transaction.type === 'send' ? '-' : '+'}${transaction.amount.toFixed(2)}
+                  {transaction.type === 'send' ? '-' : '+'}${transaction.amount/(10 ** 6)}
                 </Text>
               </View>
             </View>
