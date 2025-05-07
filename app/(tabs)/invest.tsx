@@ -33,9 +33,9 @@ const INVESTMENT_OPPORTUNITIES = [
 ];
 
 const PORTFOLIO_STATS = {
-  totalInvested: 2500,
-  totalEarned: 187.45,
-  activeInvestments: 2,
+  totalInvested: 0,
+  totalEarned: 0,
+  activeInvestments: 0,
 };
 
 export default function InvestScreen() {
