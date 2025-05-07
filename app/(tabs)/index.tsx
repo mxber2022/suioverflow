@@ -11,6 +11,7 @@ import ReceiveModal from '@/components/ReceiveModal';
 import { getFullnodeUrl, SuiClient } from '@mysten/sui/client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import BankCardModal from '@/components/BankCardModal';
+import BuyUsdcModal from '@/components/BuyUsdcModal';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -21,6 +22,7 @@ export default function HomeScreen() {
   const [walletAddress, setWalletAddress] = useState("");
   const [balance, setBalance] = useState("");
   const [showCardModal, setShowCardModal] = useState(false);
+  const [showBuyModal, setShowBuyModal] = useState(false);
 
   const headerOpacity = scrollY.interpolate({
     inputRange: [0, 100],
@@ -61,6 +63,7 @@ export default function HomeScreen() {
       coinType: "0xa1ec7fc00a6f40db9693ad1415d0c193ad3906494428cf252621037bd7117e29::usdc::USDC"
     });
     const decimals = coinMetadata.decimals;
+    console.log("decimals: ", decimals);
 
     const suiBalance = await suiClient.getBalance({
       owner: await AsyncStorage.getItem('zkLoginAddress'),
@@ -124,7 +127,7 @@ export default function HomeScreen() {
 
           <View style={styles.quickActions}>
                   {/* Add Money */}
-          <TouchableOpacity 
+          {/* <TouchableOpacity 
               style={styles.actionButton}
               onPress={() => router.push('/(tabs)/send')}
             >
@@ -132,6 +135,16 @@ export default function HomeScreen() {
                 <Plus size={20} color={Colors.primary[700]} />
               </View>
               <Text style={styles.actionText}>Send</Text>
+            </TouchableOpacity> */}
+
+            <TouchableOpacity 
+              style={styles.actionButton}
+              onPress={() => setShowBuyModal(true)}
+            >
+              <View style={styles.plusIcon}>
+                <Plus size={20} color={Colors.primary[700]} />
+              </View>
+              <Text style={styles.actionText}>Add Money</Text>
             </TouchableOpacity>
 
 
@@ -217,7 +230,14 @@ export default function HomeScreen() {
         visible={showCardModal}
         onClose={() => setShowCardModal(false)}
       />
+
+<BuyUsdcModal
+  visible={showBuyModal}
+  onClose={() => setShowBuyModal(false)}
+/>
     </View>
+
+    
   );
 }
 

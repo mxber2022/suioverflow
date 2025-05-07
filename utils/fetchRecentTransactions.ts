@@ -26,7 +26,7 @@ export async function fetchRecentTransactions(address: string): Promise<UsdcTran
       limit: 100,
     });
 
-    console.log("response: ", response);
+    console.log("responsex: ", response);
 
     const filtered = response.data
       .filter((tx) =>
@@ -47,8 +47,8 @@ export async function fetchRecentTransactions(address: string): Promise<UsdcTran
 
         return {
           digest: tx.digest,
-          timestamp: tx.timestamp ?? null,
-          sender: tx.transaction?.data.sender || 'unknown',
+          timestamp: tx.timestampMs ? new Date(Number(tx.timestampMs)).toISOString() : null,
+          sender: tx.transaction?.data?.sender || 'unknown',
           recipient: usdcChange?.owner?.AddressOwner || address,
           amount: usdcChange?.amount || '0',
         };

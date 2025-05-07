@@ -22,7 +22,7 @@ export default function TransactionsScreen() {
     const loadTransactions = async () => {
       try {
         const recent = await fetchRecentTransactions(address);
-        console.log("recent: ", recent);
+        console.log("recent hello: ", recent);
         setAllTransactions(recent);
         setTransactions(recent);
       } catch (err) {
@@ -35,13 +35,13 @@ export default function TransactionsScreen() {
   
   const filterTransactions = (filter: FilterOption) => {
     setActiveFilter(filter);
-    
+  
     if (filter === 'all') {
-      setTransactions(RECENT_TRANSACTIONS);
+      setTransactions(allTransactions);
     } else if (filter === 'sent') {
-      setTransactions(RECENT_TRANSACTIONS.filter(t => t.type === 'send'));
+      setTransactions(allTransactions.filter(t => t.type === 'send'));
     } else if (filter === 'received') {
-      setTransactions(RECENT_TRANSACTIONS.filter(t => t.type === 'receive'));
+      setTransactions(allTransactions.filter(t => t.type === 'receive'));
     }
   };
 
@@ -69,6 +69,10 @@ export default function TransactionsScreen() {
       currency: 'USD',
       minimumFractionDigits: 2,
     });
+  };
+
+  const shortenAddress = (address: string): string => {
+    return address ? `${address.slice(0, 6)}...${address.slice(-4)}` : '';
   };
   
   return (
@@ -145,7 +149,7 @@ export default function TransactionsScreen() {
                   <Text style={styles.transactionTitle}>
                     {transaction.type === 'send' ? 'Sent to ' : 'Received from '}
                     <Text style={styles.contactName}>
-                      {transaction.contactName || 'Unknown'}
+                      {transaction.contactName || shortenAddress(transaction.sender)}
                     </Text>
                   </Text>
                   <Text style={[
@@ -153,13 +157,13 @@ export default function TransactionsScreen() {
                     { color: transaction.type === 'send' ? Colors.error.main : Colors.success.main }
                   ]}>
                     {transaction.type === 'send' ? '-' : '+'}
-                    {formatAmount(transaction.amount)}
+                    {formatAmount(transaction.amount/(10 ** 6))}
                   </Text>
                 </View>
 
                 <View style={styles.transactionFooter}>
                   <Text style={styles.date}>{formatDate(transaction.timestamp)}</Text>
-                  <Text style={styles.fee}>Fee: {formatAmount(transaction.fee)}</Text>
+                  {/* <Text style={styles.fee}>Fee: {formatAmount(transaction.fee)}</Text> */}
                 </View>
 
                 {transaction.note && (
