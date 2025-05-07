@@ -7,6 +7,7 @@ import { ArrowLeft, Filter, ArrowUp, ArrowDown } from 'lucide-react-native';
 import { Transaction } from '@/types/Transaction';
 import { RECENT_TRANSACTIONS } from '@/data/transactions';
 import { fetchRecentTransactions } from '@/utils/fetchRecentTransactions';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type FilterOption = 'all' | 'sent' | 'received';
 
@@ -15,23 +16,35 @@ export default function TransactionsScreen() {
   const [activeFilter, setActiveFilter] = useState<FilterOption>('all');
   const [transactions, setTransactions] = useState<Transaction[]>(RECENT_TRANSACTIONS);
   const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
+  const [walletAddress, setWalletAddress] = useState("");
 
-  const address = '0xf4334696ef3a277b7cc18ac1018bd00f17701074bc5d4c347ffc7764961b0cf8'; // <-- Replace with real connected address
+  //const address = '0xf4334696ef3a277b7cc18ac1018bd00f17701074bc5d4c347ffc7764961b0cf8'; // <-- Replace with real connected address
+
+  useEffect(() => {
+    const loadAddress = async () => {
+      const storedAddress = await AsyncStorage.getItem('zkLoginAddress');
+      if (storedAddress) setWalletAddress(storedAddress);
+    };
+    loadAddress();
+  }, []);
+
 
   useEffect(() => {
     const loadTransactions = async () => {
       try {
-        const recent = await fetchRecentTransactions(address);
-        console.log("recent hello: ", recent);
+        const recent = await fetchRecentTransactions(walletAddress);
+        console.log("recent hellossssss: ", recent);
         setAllTransactions(recent);
         setTransactions(recent);
       } catch (err) {
         console.error('Failed to fetch transactions:', err);
       }
     };
-
-    if (address) loadTransactions();
-  }, []);
+  
+    if (walletAddress) {
+      loadTransactions();
+    }
+  }, [walletAddress]);
   
   const filterTransactions = (filter: FilterOption) => {
     setActiveFilter(filter);
