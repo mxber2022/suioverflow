@@ -21,13 +21,14 @@ export default function HomeScreen() {
   const [hideBalance, setHideBalance] = useState(false);
   const [showReceiveModal, setShowReceiveModal] = useState(false);
   const scrollY = useRef(new Animated.Value(0)).current;
-  const [walletAddress, setWalletAddress] = useState("");
   const [balance, setBalance] = useState("");
   const [showCardModal, setShowCardModal] = useState(false);
   const [showBuyModal, setShowBuyModal] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>(RECENT_TRANSACTIONS);
   const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
-  const address = '0xf4334696ef3a277b7cc18ac1018bd00f17701074bc5d4c347ffc7764961b0cf8'; // <-- Replace with real connected addressr
+  const [walletAddress, setWalletAddress] = useState("");
+  //const address = '0xf4334696ef3a277b7cc18ac1018bd00f17701074bc5d4c347ffc7764961b0cf8'; // <-- Replace with real connected addressr
+  
   const headerOpacity = scrollY.interpolate({
     inputRange: [0, 100],
     outputRange: [1, 0],
@@ -54,9 +55,17 @@ export default function HomeScreen() {
   };
 
   useEffect(() => {
+    const loadAddress = async () => {
+      const storedAddress = await AsyncStorage.getItem('zkLoginAddress');
+      if (storedAddress) setWalletAddress(storedAddress);
+    };
+    loadAddress();
+  }, []);
+  
+  useEffect(() => {
     const loadTransactions = async () => {
       try {
-        const recent = await fetchRecentTransactions(address);
+        const recent = await fetchRecentTransactions(walletAddress);
         console.log("recent hellossssss: ", recent);
         setAllTransactions(recent);
         setTransactions(recent);
@@ -64,9 +73,11 @@ export default function HomeScreen() {
         console.error('Failed to fetch transactions:', err);
       }
     };
-
-    if (address) loadTransactions();
-  }, []);
+  
+    if (walletAddress) {
+      loadTransactions();
+    }
+  }, [walletAddress]);
 
   async function getUsdcBalance() {
     console.log("hey");
