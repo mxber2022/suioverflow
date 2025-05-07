@@ -8,7 +8,6 @@ import { Transaction } from '@/types/Transaction';
 import { RECENT_TRANSACTIONS } from '@/data/transactions';
 import { fetchRecentTransactions } from '@/utils/fetchRecentTransactions';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
 type FilterOption = 'all' | 'sent' | 'received';
 
 export default function TransactionsScreen() {
