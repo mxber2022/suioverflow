@@ -220,8 +220,8 @@ const shortenAddress = (address: string): string => {
             </TouchableOpacity>
           </View>
 
-          {allTransactions?.slice(0, 3).map((transaction) => (
-            <View key={transaction.id} style={styles.transactionItem}>
+          {allTransactions?.slice(0, 3).map((transaction, index) => (
+            <View key={index} style={styles.transactionItem}>
               <View style={[
                 styles.transactionIcon,
                 { backgroundColor: transaction.type === 'send' ? Colors.error.light : Colors.success.light }
